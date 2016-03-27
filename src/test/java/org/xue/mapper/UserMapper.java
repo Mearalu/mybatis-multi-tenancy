@@ -8,4 +8,5 @@ import java.util.Map;
  */
 public interface UserMapper {
     List<Map> selectAll();
+    List<Map> selectWhere(Long id);
 }

@@ -3,8 +3,12 @@
 <mapper namespace="org.xue.mapper.UserMapper">
     <select id="selectAll" resultType="map">
         <![CDATA[
-        SELECT bid,bookname FROM book WHERE  1=1
+        SELECT uid,username FROM user WHERE uid > 0
         ]]>
-
+    </select>
+    <select id="selectWhere" resultType="map">
+                <![CDATA[
+        SELECT uid,username FROM user WHERE uid > #{id}
+        ]]>
     </select>
 </mapper>
