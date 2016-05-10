@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.meara.mybatis.plugin.mapper.BookMapper">
+    <select id="selectAll" resultType="map">
+        SELECT bid,book_name,tenant_id FROM book
+    </select>
+    <insert id="insertBook">
+        INSERT INTO book (bid,book_name) VALUES (#{bid}, #{bookName})
+    </insert>
+    <insert id="insertSelect">
+        INSERT INTO book (bid,book_name) SELECT  #{bid},username FROM `user` limit 0,1
+    </insert>
+    <select id="selectById" resultType="map">
+        <![CDATA[
+        SELECT bid,book_name,tenant_id FROM book WHERE bid = #{bid}
+        ]]>
+    </select>
+
+</mapper>

@@ -17,13 +17,19 @@
 
     <plugins>
         <!---->
-        <plugin interceptor="org.xue.MultiTenancy">
+        <plugin interceptor="org.meara.mybatis.plugin.MultiTenancy">
             <!--数据库中租户ID的列名-->
             <property name="tenantIdColumn" value="tenant_id"/>
             <!--数据库方言-->
             <property name="dialect" value="mysql"/>
-            <!--实现租户信息接口(org.xue.TenantInfo)的实现类-->
-            <property name="tenantInfo" value="org.xue.TenantInfoImpl"/>
+            <!--实现租户信息接口(TenantInfo)的实现类-->
+            <property name="tenantInfo" value="org.meara.mybatis.plugin.TenantInfoImpl"/>
+            <!--table匹配正则表达式-->
+            <property name="filterTablePatterns" value=""/>
+            <!--statement匹配正则表达式-->
+            <property name="filterStatementPatterns" value="^org\.meara\.mybatis\.plugin\.mapper\.UserMapper"/>
+            <!--默认过滤还是忽略 true表示按租户过滤  默认值为false-->
+            <property name="filterDefault" value="true"/>
         </plugin>
     </plugins>
     <environments default="development">
@@ -39,6 +45,6 @@
         </environment>
     </environments>
     <mappers>
-        <package name="org.xue.mapper"/>
+        <package name="org.meara.mybatis.plugin"/>
     </mappers>
 </configuration>

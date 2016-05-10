@@ -1,6 +1,4 @@
-package org.xue;
-
-import org.xue.TenantInfo;
+package org.meara.mybatis.plugin;
 
 /**
  * 自行实现TenantInfo获取

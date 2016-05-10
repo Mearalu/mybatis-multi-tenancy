@@ -1,4 +1,4 @@
-package org.xue.mapper;
+package org.meara.mybatis.plugin.mapper;
 
 import java.util.List;
 import java.util.Map;
@@ -8,4 +8,7 @@ import java.util.Map;
  */
 public interface BookMapper {
     List<Map> selectAll();
+    void insertBook(Map book);
+    void insertSelect(Map book);
+    Map selectById(Integer bid);
 }

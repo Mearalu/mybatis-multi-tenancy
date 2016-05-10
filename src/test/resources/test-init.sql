@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS `book`;
 CREATE TABLE `book` (
   `bid` bigint(20) NOT NULL AUTO_INCREMENT,
-  `bookname` varchar(255) NOT NULL,
+  `book_name` varchar(255) NOT NULL,
   `tenant_id` int(11) NOT NULL,
   PRIMARY KEY (`bid`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
