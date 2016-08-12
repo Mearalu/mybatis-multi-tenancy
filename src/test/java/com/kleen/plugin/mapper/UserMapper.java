@@ -1,4 +1,4 @@
-package org.xue.mapper;
+package com.kleen.plugin.mapper;
 
 import java.util.List;
 import java.util.Map;
@@ -9,4 +9,7 @@ import java.util.Map;
 public interface UserMapper {
     List<Map> selectAll();
     List<Map> selectWhere(Long id);
+    void update();
+
+    void insert(Map map);
 }

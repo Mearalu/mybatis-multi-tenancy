@@ -1,6 +1,4 @@
-package org.xue;
-
-import org.xue.TenantInfo;
+package com.kleen.plugin;
 
 /**
  * 自行实现TenantInfo获取

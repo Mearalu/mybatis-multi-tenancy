@@ -1,4 +1,4 @@
-package org.xue.mapper;
+package com.kleen.plugin.mapper;
 
 import java.util.List;
 import java.util.Map;
