@@ -13,13 +13,13 @@
 -->
     <plugins>
         <!---->
-        <plugin interceptor="org.xue.MultiTenancy">
+        <plugin interceptor="com.kleen.plugin.MultiTenancy">
             <!--数据库中租户ID的列名-->
             <property name="tenantIdColumn" value="tenant_id"/>
             <!--数据库方言-->
             <property name="dialect" value="mysql"/>
             <!--实现租户信息接口(org.xue.TenantInfo)的实现类-->
-            <property name="tenantInfo" value="org.xue.TenantInfoImpl"/>
+            <property name="tenantInfo" value="com.kleen.plugin.TenantInfoImpl"/>
         </plugin>
     </plugins>
 ```
