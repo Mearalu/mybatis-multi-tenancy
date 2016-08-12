@@ -1,14 +1,13 @@
-package org.xue.test;
+package com.kleen.plugin.test;
 
+import com.kleen.plugin.mapper.UserMapper;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
-import org.junit.Assert;
 import org.junit.Test;
-import org.xue.mapper.UserMapper;
 
 import java.io.InputStream;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -21,9 +20,13 @@ public class MybatisTest {
         SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(is);
         SqlSession session= sqlSessionFactory.openSession();
         UserMapper userDao = session.getMapper(UserMapper.class);
-//        List<Map> users = userDao.selectAll();
-        List<Map> users = userDao.selectWhere(0L);
-        System.out.println(users);
-        Assert.assertTrue(users.size()==1);
+
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("uid",8);
+        map.put("username","kleen");
+        map.put("password","123");
+
+        userDao.insert(map);
+        session.commit();
     }
 }

@@ -17,13 +17,13 @@
 
     <plugins>
         <!---->
-        <plugin interceptor="org.xue.MultiTenancy">
+        <plugin interceptor="com.kleen.plugin.MultiTenancy">
             <!--数据库中租户ID的列名-->
             <property name="tenantIdColumn" value="tenant_id"/>
             <!--数据库方言-->
             <property name="dialect" value="mysql"/>
-            <!--实现租户信息接口(org.xue.TenantInfo)的实现类-->
-            <property name="tenantInfo" value="org.xue.TenantInfoImpl"/>
+            <!--实现租户信息接口(TenantInfo)的实现类-->
+            <property name="tenantInfo" value="com.kleen.plugin.TenantInfoImpl"/>
         </plugin>
     </plugins>
     <environments default="development">
@@ -32,13 +32,13 @@
             <!-- 配置数据库连接信息 -->
             <dataSource type="POOLED">
                 <property name="driver" value="com.mysql.jdbc.Driver"/>
-                <property name="url" value="jdbc:mysql://localhost:3306/mybatis"/>
+                <property name="url" value="jdbc:mysql://192.168.1.144:3306/ibase4j?characterEncoding=UTF-8"/>
                 <property name="username" value="root"/>
-                <property name="password" value="root"/>
+                <property name="password" value="123456"/>
             </dataSource>
         </environment>
     </environments>
     <mappers>
-        <package name="org.xue.mapper"/>
+        <package name="com.kleen.plugin.mapper"/>
     </mappers>
 </configuration>

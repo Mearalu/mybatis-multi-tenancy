@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="org.xue.mapper.UserMapper">
+<mapper namespace="com.kleen.plugin.mapper.UserMapper">
     <select id="selectAll" resultType="map">
         <![CDATA[
         SELECT uid,username FROM user WHERE uid > 0
@@ -11,4 +11,12 @@
         SELECT uid,username FROM user WHERE uid > #{id}
         ]]>
     </select>
+
+    <update id="update">
+          update user set password = '李鉴新1' where password='fred';
+    </update>
+
+    <insert id="insert" parameterType="java.util.Map" >
+        INSERT INTO user(uid,username,password)VALUES(#{uid},#{username},#{password});
+    </insert>
 </mapper>
