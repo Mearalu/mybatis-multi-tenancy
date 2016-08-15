@@ -24,12 +24,13 @@
             <property name="dialect" value="mysql"/>
             <!--实现租户信息接口(TenantInfo)的实现类-->
             <property name="tenantInfo" value="org.meara.mybatis.plugin.TenantInfoImpl"/>
-            <!--table匹配正则表达式-->
-            <property name="filterTablePatterns" value=""/>
-            <!--statement匹配正则表达式-->
-            <property name="filterStatementPatterns" value="^org\.meara\.mybatis\.plugin\.mapper\.UserMapper"/>
-            <!--默认过滤还是忽略 true表示按租户过滤  默认值为false-->
+
+            <!--默认过滤还是忽略,true表示按租户过滤  默认值为false-->
             <property name="filterDefault" value="true"/>
+            <!--table匹配正则表达式 逗号分隔-->
+            <property name="filterTablePatterns" value=""/>
+            <!--statement匹配正则表达式(filterDefault为true,则这里为忽略UserMapper)-->
+            <property name="filterStatementPatterns" value="^org\.meara\.mybatis\.plugin\.mapper\.UserMapper"/>
         </plugin>
     </plugins>
     <environments default="development">

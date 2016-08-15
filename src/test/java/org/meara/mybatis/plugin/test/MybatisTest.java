@@ -36,7 +36,6 @@ public class MybatisTest {
     public void queryTest() {
         BookMapper userDao = sqlSession.getMapper(BookMapper.class);
         List<Map> users = userDao.selectAll();
-        System.out.println(users);
         Assert.assertTrue(users.size() == 1);
     }
 
@@ -47,7 +46,6 @@ public class MybatisTest {
     public void ignoreTest() {
         UserMapper userDao = sqlSession.getMapper(UserMapper.class);
         List<Map> users = userDao.selectWhere(0);
-        System.out.println(users);
         Assert.assertTrue(users.size() == 2);
     }
 
@@ -59,7 +57,6 @@ public class MybatisTest {
         newBook.put("bookName", "水浒传");
         bookMapper.insertBook(newBook);
         Map book = bookMapper.selectById(3);
-        System.out.println(book);
         Assert.assertTrue("2".equals(Objects.toString(book.get("tenant_id"))));
     }
 
@@ -70,7 +67,6 @@ public class MybatisTest {
         newBook.put("bid",4);
         bookMapper.insertSelect(newBook);
         Map book = bookMapper.selectById(4);
-        System.out.println(book);
         Assert.assertTrue("2".equals(Objects.toString(book.get("tenant_id"))));
     }
 

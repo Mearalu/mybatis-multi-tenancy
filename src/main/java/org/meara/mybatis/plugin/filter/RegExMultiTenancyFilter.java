@@ -1,9 +1,9 @@
-package org.meara.mybatis.plugin;
+package org.meara.mybatis.plugin.filter;
 
 import java.util.regex.Pattern;
 
 /**
- * 正则过滤实现
+ * 正则过滤器实现
  * Created by Meara on 2016/5/4.
  */
 public class RegExMultiTenancyFilter implements MultiTenancyFilter {
@@ -13,7 +13,7 @@ public class RegExMultiTenancyFilter implements MultiTenancyFilter {
     private Pattern statementPatterns[];
 
     @Override
-    public boolean tableFilter(String table) {
+    public boolean doTableFilter(String table) {
         if (this.tablePatterns != null) {
             for (Pattern p : this.tablePatterns) {
                 if (p.matcher(table).find()) return !filterDefault;
@@ -23,7 +23,7 @@ public class RegExMultiTenancyFilter implements MultiTenancyFilter {
     }
 
     @Override
-    public boolean statementFilter(String statementId) {
+    public boolean doStatementFilter(String statementId) {
         if (this.statementPatterns != null) {
             for (Pattern p : this.statementPatterns) {
                 if (p.matcher(statementId).find()) return !filterDefault;
