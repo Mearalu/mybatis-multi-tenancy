@@ -11,4 +11,6 @@ public interface BookMapper {
     void insertBook(Map book);
     void insertSelect(Map book);
     Map selectById(Integer bid);
+    void updateBook(Map book);
+    void updateNoWhereBook(Map book);
 }

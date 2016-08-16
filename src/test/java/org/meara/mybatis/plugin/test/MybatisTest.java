@@ -70,9 +70,22 @@ public class MybatisTest {
         Assert.assertTrue("2".equals(Objects.toString(book.get("tenant_id"))));
     }
 
-    @After
-    public void rollback() {
-        sqlSession.rollback(true);
-        sqlSession.close();
+    @Test
+    public void updateTest() {
+        BookMapper bookMapper = sqlSession.getMapper(BookMapper.class);
+        Map map = new HashMap();
+        map.put("bid","2");
+        map.put("bookName","封神榜");
+        bookMapper.updateBook(map);
+        sqlSession.commit(true);
+    }
+
+    @Test
+    public void updateNoWhereBook() {
+        BookMapper bookMapper = sqlSession.getMapper(BookMapper.class);
+        Map map = new HashMap();
+        map.put("bookName","xiaozhang");
+        bookMapper.updateNoWhereBook(map);
+        sqlSession.commit(true);
     }
 }
