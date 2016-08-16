@@ -16,4 +16,12 @@
         ]]>
     </select>
 
+    <update id="updateBook">
+        update book set book_name=#{bookName} where bid=#{bid}
+    </update>
+
+    <update id="updateNoWhereBook">
+        update book set book_name=#{bookName}
+    </update>
+
 </mapper>

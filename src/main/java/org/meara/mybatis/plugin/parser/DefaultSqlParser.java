@@ -94,7 +94,19 @@ public class DefaultSqlParser implements SqlParser {
      */
     @Override
     public void processUpdate(Update update) {
-
+        //获得where条件表达式
+        Expression where = update.getWhere();
+        EqualsTo equalsTo = new EqualsTo();
+        if (where instanceof BinaryExpression) {
+            equalsTo.setLeftExpression(new Column(this.tenantIdColumn));
+            equalsTo.setRightExpression(new StringValue("," + tenantInfo.getTenantId() + ","));
+            AndExpression andExpression = new AndExpression(equalsTo, where);
+            update.setWhere(andExpression);
+        }else{
+            equalsTo.setLeftExpression(new Column(this.tenantIdColumn));
+            equalsTo.setRightExpression(new StringValue("," + tenantInfo.getTenantId() + ","));
+            update.setWhere(equalsTo);
+        }
     }
 
     /**
