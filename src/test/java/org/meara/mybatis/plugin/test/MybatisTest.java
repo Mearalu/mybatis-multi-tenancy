@@ -88,4 +88,11 @@ public class MybatisTest {
         bookMapper.updateNoWhereBook(map);
         sqlSession.commit(true);
     }
+
+
+    @After
+    public void rollback() {
+        sqlSession.rollback(true);
+        sqlSession.close();
+    }
 }
