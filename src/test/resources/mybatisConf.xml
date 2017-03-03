@@ -28,9 +28,9 @@
             <!--默认过滤还是忽略,true表示按租户过滤  默认值为false-->
             <property name="filterDefault" value="true"/>
             <!--table匹配正则表达式 逗号分隔-->
-            <property name="filterTablePatterns" value=""/>
+            <property name="filterTableRegexStr" value=""/>
             <!--statement匹配正则表达式(filterDefault为true,则这里为忽略UserMapper)-->
-            <property name="filterStatementPatterns" value="^org\.meara\.mybatis\.plugin\.mapper\.UserMapper"/>
+            <property name="filterStatementRegexStr" value="^org\.meara\.mybatis\.plugin\.mapper\.UserMapper"/>
         </plugin>
     </plugins>
     <environments default="development">
@@ -38,10 +38,10 @@
             <transactionManager type="JDBC"/>
             <!-- 配置数据库连接信息 -->
             <dataSource type="POOLED">
-                <property name="driver" value="com.mysql.jdbc.Driver"/>
-                <property name="url" value="jdbc:mysql://localhost:3306/mybatis"/>
-                <property name="username" value="root"/>
-                <property name="password" value="root"/>
+                <property name="driver" value="org.h2.Driver"/>
+                <property name="url" value="jdbc:h2:mem:test"/>
+                <property name="username" value="sa"/>
+                <property name="password" value=""/>
             </dataSource>
         </environment>
     </environments>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+
+        xmlns="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+        xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-4.0.xsd http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd">
+    <!--配置数据源-->
+    <!--<bean id="testDatasource" class="com.alibaba.druid.pool.DruidDataSource" destroy-method="close">-->
+        <!--<property name="driverClassName" value="com.mysql.jdbc.Driver"/>-->
+        <!--<property name="url" value="jdbc:mysql://localhost:3306/mybatis"/>-->
+        <!--<property name="username" value="root"/>-->
+        <!--<property name="password" value="root"/>-->
+    <!--</bean>-->
+    <jdbc:embedded-database id="testDatasource" type="H2">
+    </jdbc:embedded-database>
+    <!--自动执行初始化脚本-->
+    <jdbc:initialize-database data-source="testDatasource" enabled="true">
+        <!-- 使用导出的数据初始化,记得使用UTF-8编码 -->
+        <jdbc:script location="classpath:test-init.sql" />
+    </jdbc:initialize-database>
+    <!--配置sqlSessionFactory 并读取mybatis的一些配置-->
+    <bean name="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="testDatasource"/>
+        <!--<property name="configLocation" value="classpath:mybatisConf.xml"/>-->
+        <property name="plugins">
+            <array>
+                <bean class="org.meara.mybatis.plugin.MultiTenancy">
+                    <constructor-arg>
+                        <bean class="org.meara.mybatis.plugin.TenantInfoImpl">
+                            <property name="multiTenancyFilter">
+                                <bean class="org.meara.mybatis.plugin.filter.RegExMultiTenancyFilter">
+                                    <!--默认值-->
+                                    <property name="filterDefault" value="false"/>
+                                    <property name="filterStatementRegexArr">
+                                        <list>
+                                            <value>^org\.meara\.mybatis\.plugin\.mapper\.BookMapper</value>
+                                            <value>^org\.meara\.mybatis\.plugin\.mapper\.UserMapper</value>
+                                        </list>
+                                    </property>
+                                    <property name="filterTableRegexArr">
+                                        <list>
+                                            <value>book</value>
+                                            <value>user</value>
+                                        </list>
+                                    </property>
+                                </bean>
+                            </property>
+                        </bean>
+                    </constructor-arg>
+                    <property name="properties">
+                        <value>
+                            tenantIdColumn=tenant_id
+                            dialect=mysql
+                            tenantInfo=org.meara.mybatis.plugin.TenantInfoImpl
+                        </value>
+                    </property>
+                </bean>
+            </array>
+        </property>
+    </bean>
+    <!-- 自动扫描 将Mapper接口生成代理注入到Spring-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="org.meara.mybatis.plugin.mapper"/>
+    </bean>
+</beans>

@@ -8,7 +8,6 @@ import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.expression.operators.relational.InExpression;
-import net.sf.jsqlparser.expression.operators.relational.ItemsList;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
@@ -16,8 +15,9 @@ import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.*;
 import net.sf.jsqlparser.statement.update.Update;
-import org.meara.mybatis.plugin.filter.MultiTenancyFilter;
 import org.meara.mybatis.plugin.TenantInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,31 +28,29 @@ import java.util.List;
  * Created by Meara on 2016/6/8.
  */
 public class DefaultSqlParser implements SqlParser {
+    private static final Logger logger= LoggerFactory.getLogger(DefaultSqlParser.class);
     //获取tenantId的接口
     private TenantInfo tenantInfo;
-    //MultiTenancyFilter过滤器
-    private MultiTenancyFilter multiTenancyFilter;
-    //数据库中租户ID的列名
-    private String tenantIdColumn;
     //更新时是否更新租户id
 
     @Override
-    public boolean doTableFilter(String table) {
-        return multiTenancyFilter.doTableFilter(table);
+    public boolean doStatementFilter(String statementId) {
+        return tenantInfo.getMultiTenancyFilter().doStatementFilter(statementId);
     }
 
-    @Override
-    public boolean doStatementFilter(String statementId) {
-        return multiTenancyFilter.doStatementFilter(statementId);
+    private boolean doTableFilter(String table) {
+        return tenantInfo.getMultiTenancyFilter().doTableFilter(table);
     }
 
     @Override
     public String setTenantParameter(String sql) {
+        logger.debug("old sql:{}",sql);
         Statement stmt = null;
         try {
             stmt = CCJSqlParserUtil.parse(sql);
         } catch (JSQLParserException e) {
-            e.printStackTrace();
+            logger.debug("解析",e);
+            logger.error("解析sql[{}]失败\n原因:{}",sql,e.getMessage());
             //如果解析失败不进行任何处理防止业务中断
             return sql;
         }
@@ -66,15 +64,16 @@ public class DefaultSqlParser implements SqlParser {
         if (stmt instanceof Update) {
             processUpdate((Update) stmt);
         }
+        logger.debug("new sql:{}",stmt);
         return stmt.toString();
     }
 
     @Override
     public void processInsert(Insert insert) {
-        if (multiTenancyFilter.doTableFilter(
+        if (doTableFilter(
                 insert.getTable().getName()
         )) {
-            insert.getColumns().add(new Column(this.tenantIdColumn));
+            insert.getColumns().add(new Column(this.tenantInfo.getTenantIdColumn()));
             if (insert.getSelect() != null) {
                 processPlainSelect((PlainSelect) insert.getSelect().getSelectBody(), true);
             } else if (insert.getItemsList() != null) {
@@ -98,12 +97,12 @@ public class DefaultSqlParser implements SqlParser {
         Expression where = update.getWhere();
         EqualsTo equalsTo = new EqualsTo();
         if (where instanceof BinaryExpression) {
-            equalsTo.setLeftExpression(new Column(this.tenantIdColumn));
+            equalsTo.setLeftExpression(new Column(this.tenantInfo.getTenantIdColumn()));
             equalsTo.setRightExpression(new StringValue("," + tenantInfo.getTenantId() + ","));
             AndExpression andExpression = new AndExpression(equalsTo, where);
             update.setWhere(andExpression);
         }else{
-            equalsTo.setLeftExpression(new Column(this.tenantIdColumn));
+            equalsTo.setLeftExpression(new Column(this.tenantInfo.getTenantIdColumn()));
             equalsTo.setRightExpression(new StringValue("," + tenantInfo.getTenantId() + ","));
             update.setWhere(equalsTo);
         }
@@ -117,7 +116,7 @@ public class DefaultSqlParser implements SqlParser {
     public void processJoin(Join join) {
         if (join.getRightItem() instanceof Table) {
             Table fromTable = (Table) join.getRightItem();
-            if (multiTenancyFilter.doTableFilter(fromTable.getName())) {
+            if (doTableFilter(fromTable.getName())) {
                 join.setOnExpression(builderExpression(join.getOnExpression(), fromTable));
             }
 
@@ -141,7 +140,7 @@ public class DefaultSqlParser implements SqlParser {
             tenantIdColumnName.append(table.getAlias() != null ? table.getAlias().getName() : table.getName());
             tenantIdColumnName.append(".");
         }
-        tenantIdColumnName.append(this.tenantIdColumn);
+        tenantIdColumnName.append(this.tenantInfo.getTenantIdColumn());
         //生成字段名
         Column tenantColumn = new Column(tenantIdColumnName.toString());
 
@@ -221,7 +220,7 @@ public class DefaultSqlParser implements SqlParser {
         FromItem fromItem = plainSelect.getFromItem();
         if (fromItem instanceof Table) {
             Table fromTable = (Table) fromItem;
-            if (multiTenancyFilter.doTableFilter(fromTable.getName())) {
+            if (doTableFilter(fromTable.getName())) {
                 plainSelect.setWhere(builderExpression(plainSelect.getWhere(), fromTable));
                 if (addColumn)
                     plainSelect.getSelectItems().add(new SelectExpressionItem(new Column("'" + this.tenantInfo.getTenantId() + "'")));
@@ -274,16 +273,4 @@ public class DefaultSqlParser implements SqlParser {
         this.tenantInfo = tenantInfo;
         return this;
     }
-
-    public DefaultSqlParser setMultiTenancyFilter(MultiTenancyFilter multiTenancyFilter) {
-        this.multiTenancyFilter = multiTenancyFilter;
-        return this;
-    }
-
-    public DefaultSqlParser setTenantIdColumn(String tenantIdColumn) {
-        this.tenantIdColumn = tenantIdColumn;
-        return this;
-    }
-
-
 }
