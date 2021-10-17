@@ -12,6 +12,7 @@ import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.Statement;
+import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.*;
 import net.sf.jsqlparser.statement.update.Update;
@@ -20,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -28,7 +30,7 @@ import java.util.List;
  * Created by Meara on 2016/6/8.
  */
 public class DefaultSqlParser implements SqlParser {
-    private static final Logger logger= LoggerFactory.getLogger(DefaultSqlParser.class);
+    private static final Logger logger = LoggerFactory.getLogger(DefaultSqlParser.class);
     //获取tenantId的接口
     private TenantInfo tenantInfo;
     //更新时是否更新租户id
@@ -44,13 +46,13 @@ public class DefaultSqlParser implements SqlParser {
 
     @Override
     public String setTenantParameter(String sql) {
-        logger.debug("old sql:{}",sql);
+        logger.debug("old sql:{}", sql);
         Statement stmt = null;
         try {
             stmt = CCJSqlParserUtil.parse(sql);
         } catch (JSQLParserException e) {
-            logger.debug("解析",e);
-            logger.error("解析sql[{}]失败\n原因:{}",sql,e.getMessage());
+            logger.debug("解析", e);
+            logger.error("解析sql[{}]失败\n原因:{}", sql, e.getMessage());
             //如果解析失败不进行任何处理防止业务中断
             return sql;
         }
@@ -64,7 +66,10 @@ public class DefaultSqlParser implements SqlParser {
         if (stmt instanceof Update) {
             processUpdate((Update) stmt);
         }
-        logger.debug("new sql:{}",stmt);
+        if (stmt instanceof Delete) {
+            processDelete((Delete) stmt);
+        }
+        logger.debug("new sql:{}", stmt);
         return stmt.toString();
     }
 
@@ -77,7 +82,7 @@ public class DefaultSqlParser implements SqlParser {
             if (insert.getSelect() != null) {
                 processPlainSelect((PlainSelect) insert.getSelect().getSelectBody(), true);
             } else if (insert.getItemsList() != null) {
-                ((ExpressionList) insert.getItemsList()).getExpressions().add(new StringValue("," + this.tenantInfo.getTenantId() + ","));
+                ((ExpressionList) insert.getItemsList()).getExpressions().add(getValue(this.tenantInfo.getCurrentTenantId()));
             } else {
                 //
                 throw new RuntimeException("无法处理的 sql");
@@ -95,17 +100,54 @@ public class DefaultSqlParser implements SqlParser {
     public void processUpdate(Update update) {
         //获得where条件表达式
         Expression where = update.getWhere();
-        EqualsTo equalsTo = new EqualsTo();
-        if (where instanceof BinaryExpression) {
-            equalsTo.setLeftExpression(new Column(this.tenantInfo.getTenantIdColumn()));
-            equalsTo.setRightExpression(new StringValue("," + tenantInfo.getTenantId() + ","));
-            AndExpression andExpression = new AndExpression(equalsTo, where);
-            update.setWhere(andExpression);
-        }else{
-            equalsTo.setLeftExpression(new Column(this.tenantInfo.getTenantIdColumn()));
-            equalsTo.setRightExpression(new StringValue("," + tenantInfo.getTenantId() + ","));
-            update.setWhere(equalsTo);
+        update.setWhere(builderExpression(where, update.getTable()));
+    }
+
+    @Override
+    public void processDelete(Delete delete) {
+        //获得where条件表达式
+        Expression where = delete.getWhere();
+        delete.setWhere(builderExpression(where, delete.getTable()));
+    }
+
+    private StringValue getValue(Object val) {
+        if (val instanceof Number) {
+            return new StringValue(val.toString());
+        } else {
+            return new StringValue("'" + val + "'");
         }
+    }
+
+    private Expression getTenantExpression(Table table) {
+        Expression tenantExpression = null;
+        List<String> tenantIds = this.tenantInfo.getTenantIds();
+/*        //当传入table时,字段前加上别名或者table名
+        //别名优先使用
+        StringBuilder tenantIdColumnName = new StringBuilder();
+        if (table != null) {
+            tenantIdColumnName.append(table.getAlias() != null ? table.getAlias().getName() : table.getName());
+            tenantIdColumnName.append(".");
+        }
+        tenantIdColumnName.append(this.tenantInfo.getTenantIdColumn());*/
+        //生成字段名
+        Column tenantColumn = new Column(table, this.tenantInfo.getTenantIdColumn());
+        if (tenantIds.size() == 1) {
+            EqualsTo equalsTo = new EqualsTo();
+            tenantExpression = equalsTo;
+            equalsTo.setLeftExpression(tenantColumn);
+            equalsTo.setRightExpression(getValue(tenantIds.get(0)));
+        } else {
+            //多租户身份
+            InExpression inExpression = new InExpression();
+            tenantExpression = inExpression;
+            inExpression.setLeftExpression(tenantColumn);
+            List<Expression> valueList = new ArrayList<>();
+            for (String tid : tenantIds) {
+                valueList.add(getValue(tid));
+            }
+            inExpression.setRightItemsList(new ExpressionList(valueList));
+        }
+        return tenantExpression;
     }
 
     /**
@@ -117,7 +159,11 @@ public class DefaultSqlParser implements SqlParser {
         if (join.getRightItem() instanceof Table) {
             Table fromTable = (Table) join.getRightItem();
             if (doTableFilter(fromTable.getName())) {
-                join.setOnExpression(builderExpression(join.getOnExpression(), fromTable));
+                List<Expression> list = new LinkedList<>();
+                for (Expression expression : join.getOnExpressions()) {
+                    list.add(builderExpression(expression, fromTable));
+                }
+                join.setOnExpressions(list);
             }
 
         }
@@ -126,41 +172,13 @@ public class DefaultSqlParser implements SqlParser {
     /**
      * 处理条件
      * TODO 未解决sql注入问题(考虑替换StringValue为LongValue),因为线上数据库租户字段为int暂时不存在注入问题
+     *
      * @param expression
      * @param table
      * @return
      */
     public Expression builderExpression(Expression expression, Table table) {
-        Expression tenantExpression = null;
-        String[] tenantIds = this.tenantInfo.getTenantId().split(",");
-        //当传入table时,字段前加上别名或者table名
-        //别名优先使用
-        StringBuilder tenantIdColumnName = new StringBuilder();
-        if (table != null) {
-            tenantIdColumnName.append(table.getAlias() != null ? table.getAlias().getName() : table.getName());
-            tenantIdColumnName.append(".");
-        }
-        tenantIdColumnName.append(this.tenantInfo.getTenantIdColumn());
-        //生成字段名
-        Column tenantColumn = new Column(tenantIdColumnName.toString());
-
-        if (tenantIds.length == 1) {
-            EqualsTo equalsTo = new EqualsTo();
-            tenantExpression = equalsTo;
-            equalsTo.setLeftExpression(tenantColumn);
-            equalsTo.setRightExpression(new StringValue("'" + tenantIds[0] + "'"));
-        } else {
-            //多租户身份
-            InExpression inExpression = new InExpression();
-            tenantExpression = inExpression;
-            inExpression.setLeftExpression(tenantColumn);
-            List<Expression> valueList = new ArrayList<>();
-            for (String tid : tenantIds) {
-                valueList.add(new StringValue("'" + tid + "'"));
-            }
-            inExpression.setRightItemsList(new ExpressionList(valueList));
-        }
-
+        Expression tenantExpression = getTenantExpression(table);
         //加入判断防止条件为空时生成 "and null" 导致查询结果为空
         if (expression == null) {
             return tenantExpression;
@@ -176,19 +194,19 @@ public class DefaultSqlParser implements SqlParser {
             }
             return new AndExpression(tenantExpression, expression);
         }
-
     }
 
     /**
      * 处理SelectBody
      */
+    @Override
     public void processSelectBody(SelectBody selectBody) {
         if (selectBody instanceof PlainSelect) {
             processPlainSelect((PlainSelect) selectBody);
         } else if (selectBody instanceof WithItem) {
             WithItem withItem = (WithItem) selectBody;
-            if (withItem.getSelectBody() != null) {
-                processSelectBody(withItem.getSelectBody());
+            if (withItem.getSubSelect() != null) {
+                processSelectBody(withItem.getSubSelect().getSelectBody());
             }
         } else {
             SetOperationList operationList = (SetOperationList) selectBody;
@@ -222,8 +240,9 @@ public class DefaultSqlParser implements SqlParser {
             Table fromTable = (Table) fromItem;
             if (doTableFilter(fromTable.getName())) {
                 plainSelect.setWhere(builderExpression(plainSelect.getWhere(), fromTable));
-                if (addColumn)
-                    plainSelect.getSelectItems().add(new SelectExpressionItem(new Column("'" + this.tenantInfo.getTenantId() + "'")));
+                if (addColumn) {
+                    plainSelect.getSelectItems().add(new SelectExpressionItem(new Column("'" + this.tenantInfo.getCurrentTenantId() + "'")));
+                }
             }
         } else {
             processFromItem(fromItem);
@@ -245,8 +264,10 @@ public class DefaultSqlParser implements SqlParser {
     public void processFromItem(FromItem fromItem) {
         if (fromItem instanceof SubJoin) {
             SubJoin subJoin = (SubJoin) fromItem;
-            if (subJoin.getJoin() != null) {
-                processJoin(subJoin.getJoin());
+            if (subJoin.getJoinList() != null) {
+                for (Join join : subJoin.getJoinList()) {
+                    processJoin(join);
+                }
             }
             if (subJoin.getLeft() != null) {
                 processFromItem(subJoin.getLeft());
@@ -269,6 +290,7 @@ public class DefaultSqlParser implements SqlParser {
         }
     }
 
+    @Override
     public DefaultSqlParser setTenantInfo(TenantInfo tenantInfo) {
         this.tenantInfo = tenantInfo;
         return this;

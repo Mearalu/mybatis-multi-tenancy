@@ -2,6 +2,7 @@ package org.meara.mybatis.plugin;
 
 import org.meara.mybatis.plugin.filter.MultiTenancyFilter;
 
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -10,9 +11,15 @@ import java.util.Properties;
  */
 public interface TenantInfo {
     TenantInfo setFilterConfig(Properties properties);
-    String getTenantId();
+
+    String getCurrentTenantId();
+
+    List<String> getTenantIds();
+
     MultiTenancyFilter getMultiTenancyFilter();
+
     String getTenantIdColumn();
+
     TenantInfo setTenantIdColumn(String tenantIdColumn);
 
 }

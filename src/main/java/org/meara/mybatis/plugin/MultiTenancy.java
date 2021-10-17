@@ -52,6 +52,7 @@ public class MultiTenancy implements Interceptor {
         this(null,null);
     }
 
+    @Override
     public Object intercept(Invocation invocation) throws Throwable {
         mod(invocation);
         return invocation.proceed();
@@ -67,7 +68,9 @@ public class MultiTenancy implements Interceptor {
         MappedStatement ms = (MappedStatement) invocation
                 .getArgs()[0];
         //logger.info("sql:{}",ms.getBoundSql(invocation.getArgs()[1]).getSql());
-        if (!sqlParser.doStatementFilter(ms.getId())) return;
+        if (!sqlParser.doStatementFilter(ms.getId())) {
+            return;
+        }
         String methodName = invocation.getMethod().getName();
         BoundSql boundSql = ms.getBoundSql(invocation.getArgs()[1]);
 
@@ -114,6 +117,7 @@ public class MultiTenancy implements Interceptor {
         return builder.build();
     }
 
+    @Override
     public Object plugin(Object target) {
         return Plugin.wrap(target, this);
     }
@@ -124,6 +128,7 @@ public class MultiTenancy implements Interceptor {
      *
      * @param properties
      */
+    @Override
     public void setProperties(Properties properties) {
         this.properties.putAll(properties);
         if (tenantInfo == null) {
@@ -165,6 +170,7 @@ public class MultiTenancy implements Interceptor {
             this.boundSql = boundSql;
         }
 
+        @Override
         public BoundSql getBoundSql(Object parameterObject) {
             return boundSql;
         }

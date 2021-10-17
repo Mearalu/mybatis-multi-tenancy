@@ -6,87 +6,119 @@
     <groupId>org.52xue</groupId>
     <artifactId>mybatis-multi-tenancy</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <properties>
+        <java.version>1.8</java.version>
+        <resource.delimiter>@</resource.delimiter>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+        <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
+        <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
+
+        <spring.version>5.3.10</spring.version>
+        <jsqlparser.version>4.2</jsqlparser.version>
+        <mybatis.version>3.5.7</mybatis.version>
+        <slf4j.version>1.7.32</slf4j.version>
+
+        <mybatis-spring.version>2.0.6</mybatis-spring.version>
+        <junit-jupiter.version>5.7.2</junit-jupiter.version>
+
+        <logback.version>1.2.6</logback.version>
+        <h2.version>1.4.200</h2.version>
+        <hikaricp.version>4.0.3</hikaricp.version>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>com.github.jsqlparser</groupId>
             <artifactId>jsqlparser</artifactId>
-            <version>0.9.5</version>
+            <version>${jsqlparser.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mybatis</groupId>
             <artifactId>mybatis</artifactId>
-            <version>3.3.1</version>
+            <version>${mybatis.version}</version>
+            <scope>compile</scope>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.24</version>
+            <version>${slf4j.version}</version>
         </dependency>
         <!--测试期间依赖-->
         <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit-jupiter.version}</version>
             <scope>test</scope>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
         </dependency>
         <dependency>
-            <scope>test</scope>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.2.1</version>
+            <version>${logback.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <scope>test</scope>
             <groupId>org.slf4j</groupId>
             <artifactId>jcl-over-slf4j</artifactId>
-            <version>1.7.24</version>
+            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
-            <scope>test</scope>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
-            <version>4.3.0.RELEASE</version>
+            <version>${spring.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
-            <scope>test</scope>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
-            <version>4.3.0.RELEASE</version>
+            <version>${spring.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
-            <scope>test</scope>
             <groupId>org.springframework</groupId>
             <artifactId>spring-jdbc</artifactId>
-            <version>4.3.0.RELEASE</version>
+            <version>${spring.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
-            <scope>test</scope>
             <groupId>org.mybatis</groupId>
             <artifactId>mybatis-spring</artifactId>
-            <version>1.3.0</version>
+            <version>${mybatis-spring.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
-            <scope>test</scope>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>${hikaricp.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <version>1.4.192</version>
+            <version>${h2.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
     <build>
         <plugins>
-            <plugin>
+<!--            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.2</version>
+                <version>${maven-compiler-plugin.version}</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
                     <encoding>utf-8</encoding>
                 </configuration>
-            </plugin>
+            </plugin>-->
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>2.4</version>
+                <version>${maven-source-plugin.version}</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -98,17 +130,17 @@
             </plugin>
 
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.9</version>
+                <version>${maven-surefire-plugin.version}</version>
                 <configuration>
                     <!--跳过单元测试-->
+                    <forkMode>always</forkMode>
                     <skip>false</skip>
                     <!--单元测试乱码-->
-                    <forkMode>once</forkMode>
                     <argLine>-Dfile.encoding=UTF-8</argLine>
                 </configuration>
             </plugin>
-
         </plugins>
     </build>
 </project>

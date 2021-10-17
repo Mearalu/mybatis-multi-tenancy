@@ -1,12 +1,11 @@
 package org.meara.mybatis.plugin.test.spring;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.meara.mybatis.plugin.mapper.BookMapper;
-import org.meara.mybatis.plugin.mapper.UserMapper;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.annotation.Resource;
 import java.util.HashMap;
@@ -18,15 +17,12 @@ import java.util.Objects;
  * Spring 配置测试
  * Created by meara on 2017/03/03.
  */
-@RunWith(value = SpringJUnit4ClassRunner.class)
+@ExtendWith(value = SpringExtension.class)
 @ContextConfiguration(value = {"classpath:spring-root-context.xml"})
 public class SpringTest {
 
     @Resource
     private BookMapper bookMapper;
-
-    @Resource
-    private UserMapper userMapper;
 
     /**
      * 匹配测试
@@ -34,7 +30,7 @@ public class SpringTest {
     @Test
     public void queryTest() {
         List<Map> books = bookMapper.selectAll();
-        Assert.assertTrue(books.size() == 1);
+        Assertions.assertEquals(1, books.size());
     }
 
     @Test
@@ -44,7 +40,7 @@ public class SpringTest {
         newBook.put("bookName", "水浒传");
         bookMapper.insertBook(newBook);
         Map book = bookMapper.selectById(3);
-        Assert.assertTrue("2".equals(Objects.toString(book.get("TENANT_ID"))));
+        Assertions.assertEquals("2", Objects.toString(book.get("TENANT_ID")));
     }
 
     @Test
@@ -53,7 +49,7 @@ public class SpringTest {
         newBook.put("bid", 4);
         bookMapper.insertSelect(newBook);
         Map book = bookMapper.selectById(4);
-        Assert.assertTrue("2".equals(Objects.toString(book.get("TENANT_ID"))));
+        Assertions.assertEquals("2", Objects.toString(book.get("TENANT_ID")));
     }
 
     @Test

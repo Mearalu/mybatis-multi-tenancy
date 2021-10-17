@@ -1,8 +1,8 @@
 package org.meara.mybatis.plugin.test;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.meara.mybatis.plugin.TenantInfoImpl;
 import org.meara.mybatis.plugin.filter.RegExMultiTenancyFilter;
 import org.meara.mybatis.plugin.parser.DefaultSqlParser;
@@ -14,7 +14,7 @@ import org.meara.mybatis.plugin.parser.DefaultSqlParser;
 public class FilterTest {
     DefaultSqlParser defaultSqlParser;
 
-    @Before
+    @BeforeEach
     public void init() {
         defaultSqlParser=new DefaultSqlParser();
     }
@@ -32,7 +32,7 @@ public class FilterTest {
         );
         String sql = "SELECT bid, book_name FROM book";
         String newSql = defaultSqlParser.setTenantParameter(sql);
-        Assert.assertNotEquals("SELECT bid, book_name FROM book WHERE book.tenant_id = '2'",
+        Assertions.assertNotEquals("SELECT bid, book_name FROM book WHERE book.tenant_id = '2'",
                 newSql);
     }
 
@@ -49,7 +49,24 @@ public class FilterTest {
         );
         String sql = "SELECT bid, book_name FROM book";
         String newSql = defaultSqlParser.setTenantParameter(sql);
-        Assert.assertEquals("SELECT bid, book_name FROM book WHERE book.tenant_id = '2'",
+        Assertions.assertEquals("SELECT bid, book_name FROM book WHERE book.tenant_id = '2'",
+                newSql);
+    }
+
+    @Test
+    public void tableJoinTest() {
+        defaultSqlParser .setTenantInfo(new TenantInfoImpl()
+                .setTenantIdColumn("tenant_id")
+                .setMultiTenancyFilter(
+                        new RegExMultiTenancyFilter()
+                                .setFilterDefault(false)
+                                .setFilterStatementRegexStr(".*")
+                                .setFilterTableRegexStr("^book")
+                )
+        );
+        String sql = "SELECT bid, book_name FROM user left join book on user.id=book.bid";
+        String newSql = defaultSqlParser.setTenantParameter(sql);
+        Assertions.assertEquals("SELECT bid, book_name FROM user LEFT JOIN book ON book.tenant_id = '2' AND user.id = book.bid",
                 newSql);
     }
 }

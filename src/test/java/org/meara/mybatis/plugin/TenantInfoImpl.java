@@ -3,25 +3,32 @@ package org.meara.mybatis.plugin;
 import org.meara.mybatis.plugin.filter.MultiTenancyFilter;
 import org.meara.mybatis.plugin.filter.RegExMultiTenancyFilter;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
 
 /**
  * TenantInfo默认实现
  * Created by Meara on 2016/3/20.
  */
-public class TenantInfoImpl implements TenantInfo{
-    private static String tenantIdColumn="tenant_id";
+public class TenantInfoImpl implements TenantInfo {
+    private static String tenantIdColumn = "tenant_id";
     private static MultiTenancyFilter multiTenancyFilter = new RegExMultiTenancyFilter();
 
 
     @Override
-    public String getTenantId() {
+    public String getCurrentTenantId() {
         return "2";
     }
 
     @Override
+    public List<String> getTenantIds() {
+        return Collections.singletonList("2");
+    }
+
+    @Override
     public String toString() {
-        return getTenantId();
+        return getCurrentTenantId();
     }
 
     @Override
@@ -42,7 +49,7 @@ public class TenantInfoImpl implements TenantInfo{
 
     @Override
     public TenantInfoImpl setTenantIdColumn(String tenantIdColumn) {
-        TenantInfoImpl.tenantIdColumn=tenantIdColumn;
+        TenantInfoImpl.tenantIdColumn = tenantIdColumn;
         return this;
     }
 

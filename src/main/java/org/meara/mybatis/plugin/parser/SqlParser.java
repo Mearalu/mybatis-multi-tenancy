@@ -1,5 +1,6 @@
 package org.meara.mybatis.plugin.parser;
 
+import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.SelectBody;
 import net.sf.jsqlparser.statement.update.Update;
@@ -45,4 +46,11 @@ public interface SqlParser {
      * @param update
      */
     void processUpdate(Update update);
+
+    /**
+     * 删除语句处理
+     *
+     * @param delete
+     */
+    void processDelete(Delete delete);
 }

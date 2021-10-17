@@ -5,10 +5,10 @@ import org.apache.ibatis.jdbc.ScriptRunner;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.meara.mybatis.plugin.mapper.BookMapper;
 import org.meara.mybatis.plugin.mapper.UserMapper;
 import org.slf4j.Logger;
@@ -17,8 +17,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -34,7 +33,7 @@ public class MybatisTest {
     private static final Logger logger = LoggerFactory.getLogger(MybatisTest.class);
 
     //h2数据库字段为大写
-    @Before
+    @BeforeEach
     public void init() throws IOException, SQLException {
         InputStream is = MybatisTest.class.getClassLoader().getResourceAsStream("mybatisConf.xml");
         SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(is);
@@ -45,11 +44,11 @@ public class MybatisTest {
         //执行初始化脚本
         Connection connection = sqlSession.getConnection();
         ScriptRunner runner = new ScriptRunner(connection);
-        Resources.setCharset(Charset.forName("UTF-8"));
+        Resources.setCharset(StandardCharsets.UTF_8);
         runner.setLogWriter(null);//设为null则不输出日志
         runner.runScript(
                 new InputStreamReader(
-                        MybatisTest.class.getClassLoader().getResourceAsStream("test-init.sql")
+                        Objects.requireNonNull(MybatisTest.class.getClassLoader().getResourceAsStream("test-init.sql"))
                 ));
     }
 
@@ -60,7 +59,8 @@ public class MybatisTest {
     public void queryTest() {
         BookMapper userDao = sqlSession.getMapper(BookMapper.class);
         List<Map> users = userDao.selectAll();
-        Assert.assertTrue(users.size() == 1);
+        System.out.println(users);
+        Assertions.assertEquals(1, users.size());
     }
 
     /**
@@ -70,7 +70,7 @@ public class MybatisTest {
     public void ignoreTest() {
         UserMapper userDao = sqlSession.getMapper(UserMapper.class);
         List<Map> users = userDao.selectWhere(0);
-        Assert.assertTrue(users.size() == 2);
+        Assertions.assertEquals(2, users.size());
     }
 
     @Test
@@ -81,7 +81,7 @@ public class MybatisTest {
         newBook.put("bookName", "水浒传");
         bookMapper.insertBook(newBook);
         Map book = bookMapper.selectById(3);
-        Assert.assertTrue("2".equals(Objects.toString(book.get("TENANT_ID"))));
+        Assertions.assertEquals("2", Objects.toString(book.get("TENANT_ID")));
     }
 
     @Test
@@ -91,7 +91,7 @@ public class MybatisTest {
         newBook.put("bid", 4);
         bookMapper.insertSelect(newBook);
         Map book = bookMapper.selectById(4);
-        Assert.assertTrue("2".equals(Objects.toString(book.get("TENANT_ID"))));
+        Assertions.assertEquals("2", Objects.toString(book.get("TENANT_ID")));
     }
 
     @Test
@@ -114,7 +114,7 @@ public class MybatisTest {
     }
 
 
-    @After
+    @AfterEach
     public void rollback() {
 //        sqlSession.rollback(true);
         sqlSession.close();
